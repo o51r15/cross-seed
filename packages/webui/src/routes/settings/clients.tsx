@@ -30,7 +30,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import ClientViewSheet from '@/features/download-client-actions/ClientViewSheet';
 import ClientEditSheet from '@/features/download-client-actions/ClientEditSheet';
-import { removeUserAndPassFromClientUrl } from '@/features/download-client-actions/lib/urls';
+import {
+  buildClientUrl,
+  getPasswordFromClientUrl,
+  getUsernameFromClientUrl,
+  removeUserAndPassFromClientUrl,
+} from '@/features/download-client-actions/lib/urls';
 import { TDownloadClient } from '@/types/download-clients';
 import { useSettingsFormSubmit } from '@/hooks/use-settings-form-submit';
 import { useSaveConfigHook } from '@/hooks/saveFormHook';
@@ -122,14 +127,14 @@ function TorrentClientsSettings() {
           user = client.user || '';
           password = client.password || '';
         } else if (typeof client === 'string') {
-          clientApp = String(client).split(':')[0];
-          readOnly = String(client).includes('readonly');
-          const firstIndex = String(client).indexOf(':');
-          const fullUrl = readOnly
-            ? String(client).substring(
-                String(client).indexOf(':', firstIndex + 1) + 1,
-              )
-            : String(client).substring(String(client).indexOf(':') + 1);
+          const serializedClient = String(client);
+          clientApp = serializedClient.split(':')[0];
+          const readonlyPrefix = `${clientApp}:readonly:`;
+          const defaultPrefix = `${clientApp}:`;
+          readOnly = serializedClient.startsWith(readonlyPrefix);
+          const fullUrl = serializedClient.startsWith(readonlyPrefix)
+            ? serializedClient.slice(readonlyPrefix.length)
+            : serializedClient.slice(defaultPrefix.length);
 
           if (!fullUrl) return null;
 
@@ -137,8 +142,8 @@ function TorrentClientsSettings() {
           if (!sanitizedUrl) return null;
 
           url = sanitizedUrl;
-          user = getUserFromClientUrl(fullUrl);
-          password = getPassFromClientUrl(fullUrl);
+          user = getUsernameFromClientUrl(fullUrl);
+          password = getPasswordFromClientUrl(fullUrl);
         }
 
         if (!clientApp || !url) return null;
@@ -156,27 +161,6 @@ function TorrentClientsSettings() {
 
     setClients(mappedClients);
   }, [configData]);
-
-  const getUserFromClientUrl = (url: string) => {
-    if (url.includes('@')) {
-      const user = url.split('://')[1].split('@')[0];
-      if (user.includes(':')) {
-        return user.split(':')[0];
-      }
-      return user.replace(':', '');
-    }
-    return '';
-  };
-
-  const getPassFromClientUrl = (url: string) => {
-    if (url.includes('@')) {
-      const pass = url.split('://')[1].split('@')[0];
-      if (pass.includes(':')) {
-        return pass.split(':')[1];
-      }
-    }
-    return '';
-  };
 
   const handleAddClient = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -211,10 +195,24 @@ function TorrentClientsSettings() {
 
   const handleDeleteClient = (client: TDownloadClient) => {
     setOpenDropdown(null);
-    const updatedClients = clients?.filter((c) => c.url !== client.url);
+    const updatedClients =
+      client.index !== undefined
+        ? clients?.filter((c) => c.index !== client.index)
+        : clients?.filter((c) => c.url !== client.url);
     setClients(updatedClients);
-    // Delete from the db
-    saveConfig({ torrentClients: updatedClients || [] });
+
+    const serializedClients = (updatedClients || []).map((entry) =>
+      buildClientUrl({
+        client: entry.client,
+        endpointUrl: entry.url,
+        username: entry.user ?? '',
+        password: entry.password ?? '',
+        readonly: entry.readOnly ?? false,
+      }),
+    );
+
+    // Persist as string[] (runtime config format), not UI objects.
+    saveConfig({ torrentClients: serializedClients });
   };
 
   const handleEditSheetOpenChange = (open: boolean) => {

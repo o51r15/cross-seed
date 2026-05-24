@@ -1,0 +1,11 @@
+use simple kebab case branches. do not prefix with codex/
+
+commit early and often. every change or logical set of changes should be a
+commit.
+
+before committing, run tests, typechecking, and the normal acceptance stuff.
+
+this project is undertested. look for practical ways to improve test coverage
+with every change.
+
+ask for confirmation before pushing to master.

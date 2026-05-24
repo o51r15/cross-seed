@@ -9,6 +9,7 @@ import { omitUndefined } from "../../utils/object.js";
 import { parseRuntimeConfig } from "../../configSchema.js";
 import { WebhookObjectSchema } from "@cross-seed/shared/configSchema";
 import { sendTestNotification } from "../../pushNotifier.js";
+import { reloadDownloadClients } from "../../clients/TorrentClient.js";
 
 export const settingsRouter = router({
 	get: authedProcedure.query(async () => {
@@ -48,6 +49,9 @@ export const settingsRouter = router({
 					...getDefaultRuntimeConfig(),
 					...updatedOverrides,
 				});
+
+				// Keep in-process torrent clients in sync with updated settings.
+				reloadDownloadClients();
 
 				return { success: true };
 			} catch (error) {
