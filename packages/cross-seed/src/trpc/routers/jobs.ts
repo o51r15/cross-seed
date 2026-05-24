@@ -88,9 +88,6 @@ export const jobsRouter = router({
 			}
 
 			job.runAheadOfSchedule = true;
-			if (job.name === JobName.SEARCH || job.name === JobName.RSS) {
-				job.delayNextRun = true;
-			}
 
 			// Clear any config overrides for manual runs
 			job.configOverride = {};

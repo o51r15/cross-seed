@@ -24,7 +24,6 @@ class Job {
 	exec: () => Promise<void>;
 	isActive: boolean;
 	runAheadOfSchedule: boolean;
-	delayNextRun: boolean;
 	configOverride: Partial<RuntimeConfig>;
 	shouldRunFn: () => boolean;
 
@@ -39,7 +38,6 @@ class Job {
 		this.exec = exec;
 		this.isActive = false;
 		this.runAheadOfSchedule = false;
-		this.delayNextRun = false;
 		this.configOverride = {};
 		this.shouldRunFn = shouldRunFn;
 	}
@@ -165,17 +163,11 @@ export async function checkJobs(
 					job.run()
 						.then(async (didRun) => {
 							if (!didRun) return; // upon success, update the log
-							const toDelay = job.delayNextRun;
-							job.delayNextRun = false;
-							const last_run = toDelay ? now + job.cadence : now;
 							await db("job_log")
-								.insert({ name: job.name, last_run })
+								.insert({ name: job.name, last_run: now })
 								.onConflict("name")
 								.merge();
-							const cadence = toDelay
-								? job.cadence * 2
-								: job.cadence;
-							logNextRun(job.name, cadence, now);
+							logNextRun(job.name, job.cadence, now);
 						})
 						.catch(exitOnCrossSeedErrors)
 						.catch((e) => void logger.error(e));

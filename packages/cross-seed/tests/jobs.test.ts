@@ -50,7 +50,6 @@ function addFakeJob(
 		exec: vi.fn(),
 		isActive: false,
 		runAheadOfSchedule: false,
-		delayNextRun: false,
 		configOverride: {},
 		shouldRun: () => true,
 		run: vi.fn(async () => true),
@@ -111,5 +110,24 @@ describe.sequential("jobs router", () => {
 		});
 		expect(job.runAheadOfSchedule).toBe(true);
 		await vi.waitFor(() => expect(job.run).toHaveBeenCalledTimes(1));
+	});
+
+	it("records manual RSS and search runs at the run time instead of delaying the next run", async () => {
+		const beforeRun = Date.now();
+		addFakeJob(env, { name: env.JobName.RSS, cadence: 86_400_000 });
+		addFakeJob(env, { name: env.JobName.SEARCH, cadence: 86_400_000 });
+		const caller = createCaller(env);
+
+		await caller.jobs.triggerJob({ name: env.JobName.RSS });
+		await caller.jobs.triggerJob({ name: env.JobName.SEARCH });
+
+		await vi.waitFor(async () => {
+			const rows = await env.db("job_log").select("name", "last_run");
+			expect(rows).toHaveLength(2);
+			for (const row of rows) {
+				expect(row.last_run).toBeGreaterThanOrEqual(beforeRun);
+				expect(row.last_run).toBeLessThan(beforeRun + 86_400_000);
+			}
+		});
 	});
 });

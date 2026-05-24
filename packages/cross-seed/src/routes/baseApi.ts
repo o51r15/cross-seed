@@ -390,9 +390,6 @@ export async function baseApiPlugin(app: FastifyInstance) {
 		}
 
 		job.runAheadOfSchedule = true;
-		if (job.name === JobName.SEARCH || job.name === JobName.RSS) {
-			job.delayNextRun = true;
-		}
 		job.configOverride = {
 			excludeRecentSearch: data.ignoreExcludeRecentSearch ? 1 : undefined,
 			excludeOlder: data.ignoreExcludeOlder
