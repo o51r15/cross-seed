@@ -30,7 +30,6 @@ export const clientValidationSchema = z.object({
     .optional()
     .default(false)
     .or(z.null().transform(() => false)),
-  plugin: z.boolean().nullish().default(false),
 });
 
 export const downloaderValidationSchema = z.object({
@@ -42,8 +41,10 @@ export const downloaderValidationSchema = z.object({
   skipRecheck: z.boolean(),
   torrentDir: z
     .string()
-    .nullable()
-    .transform((v) => v ?? null),
+    .nullish()
+    .transform((value) =>
+      value == null || value.trim() === '' ? null : value,
+    ),
   outputDir: z.string().min(1, ZodErrorMessages.emptyString),
   injectDir: z.string().optional(),
 });
