@@ -519,11 +519,11 @@ export function extractCredentialsFromUrl(
 					? origin
 					: origin + pathname,
 		});
-		} catch (e) {
-			logger.error(`extractCredentialsFromUrl - ERROR parsing: ${url}`, e);
-			return resultOfErr("invalid URL");
-		}
+	} catch (e) {
+		logger.error(`extractCredentialsFromUrl - ERROR parsing: ${url}`, e);
+		return resultOfErr("invalid URL");
 	}
+}
 
 // ================================ FUNCTIONAL ================================
 
