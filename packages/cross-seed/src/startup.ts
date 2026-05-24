@@ -1,11 +1,13 @@
-import { mkdir } from "fs/promises";
 import { spawn } from "node:child_process";
+import { mkdir, rename } from "fs/promises";
+import path from "path";
 import { resetApiKey } from "./auth.js";
 import { instantiateDownloadClients } from "./clients/TorrentClient.js";
 import {
 	createAppDirHierarchy,
 	getDefaultRuntimeConfig,
 	getFileConfig,
+	getFileConfigPath,
 	stripDefaults,
 	transformFileConfig,
 } from "./configuration.js";
@@ -112,7 +114,30 @@ async function applyExistingApiKey(config: RuntimeConfig): Promise<void> {
 	}
 }
 
-async function determineRuntimeConfig(rawOptions: Record<string, unknown>) {
+async function getFileConfigBackupPath(configPath: string): Promise<string> {
+	const basePath = `${configPath}.bak`;
+	if (await notExists(basePath)) {
+		return basePath;
+	}
+
+	for (let index = 1; ; index++) {
+		const candidate = `${basePath}.${index}`;
+		if (await notExists(candidate)) {
+			return candidate;
+		}
+	}
+}
+
+async function backupFileConfig(): Promise<string> {
+	const configPath = getFileConfigPath();
+	const backupPath = await getFileConfigBackupPath(configPath);
+	await rename(configPath, backupPath);
+	return backupPath;
+}
+
+export async function determineRuntimeConfig(
+	rawOptions: Record<string, unknown>,
+) {
 	const cliOptions = omitUndefined(rawOptions) as Partial<RuntimeConfig>;
 
 	// first, try to load from database (existing user happy path)
@@ -143,7 +168,12 @@ async function determineRuntimeConfig(rawOptions: Record<string, unknown>) {
 			await applyExistingApiKey(runtimeFromFile);
 			await setDbConfig(runtimeFromFile);
 			const resolvedOverrides = stripDefaults(runtimeFromFile);
-			logger.info("Migrated file config to database");
+			const backupPath = await backupFileConfig();
+			logger.info(
+				`Migrated file config to database; v7 now uses database/Web UI settings. Preserved old config file as ${path.basename(
+					backupPath,
+				)}.`,
+			);
 			return {
 				...getDefaultRuntimeConfig(),
 				...resolvedOverrides,
