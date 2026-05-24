@@ -337,7 +337,7 @@ function ConnectSettings() {
                             )}
                           </Label>
                           {field.state.value?.map(
-                            (entry: WebhookFormEntry, index: number) => (
+                            (_: WebhookFormEntry, index: number) => (
                               <fieldset
                                 key={index}
                                 className="border-border space-y-2 rounded-md border p-3"
@@ -404,80 +404,95 @@ function ConnectSettings() {
                                     Custom headers & payload
                                   </Label>
                                 </div>
-                                {entry.advancedOpen && (
-                                  <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                                    <div>
-                                      <Label className="text-muted-foreground text-xs">
-                                        Headers (JSON)
-                                      </Label>
-                                      <form.Field
-                                        name={`notificationWebhookUrls[${index}].headers`}
-                                      >
-                                        {(subfield) => (
-                                          <Textarea
-                                            name={subfield.name}
-                                            value={subfield.state.value}
-                                            onChange={(e) =>
-                                              subfield.handleChange(
-                                                e.target.value,
-                                              )
+                                <form.Subscribe
+                                  selector={(s) =>
+                                    (
+                                      s.values
+                                        .notificationWebhookUrls as WebhookFormEntry[]
+                                    )?.[index]?.advancedOpen
+                                  }
+                                >
+                                  {(isOpen) =>
+                                    isOpen ? (
+                                      <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                        <div>
+                                          <Label className="text-muted-foreground text-xs">
+                                            Headers (JSON)
+                                          </Label>
+                                          <form.Field
+                                            name={`notificationWebhookUrls[${index}].headers`}
+                                          >
+                                            {(subfield) => (
+                                              <Textarea
+                                                name={subfield.name}
+                                                value={subfield.state.value}
+                                                onChange={(e) =>
+                                                  subfield.handleChange(
+                                                    e.target.value,
+                                                  )
+                                                }
+                                                onBlur={subfield.handleBlur}
+                                                placeholder='{"Authorization": "Bearer token"}'
+                                                rows={2}
+                                                className="resize-y font-mono text-xs"
+                                              />
+                                            )}
+                                          </form.Field>
+                                          <form.Subscribe
+                                            selector={(f) =>
+                                              f.fieldMeta[
+                                                `notificationWebhookUrls[${index}].headers` as keyof typeof f.fieldMeta
+                                              ]
                                             }
-                                            onBlur={subfield.handleBlur}
-                                            placeholder='{"Authorization": "Bearer token"}'
-                                            rows={2}
-                                            className="resize-y font-mono text-xs"
-                                          />
-                                        )}
-                                      </form.Field>
-                                      <form.Subscribe
-                                        selector={(f) =>
-                                          f.fieldMeta[
-                                            `notificationWebhookUrls[${index}].headers` as keyof typeof f.fieldMeta
-                                          ]
-                                        }
-                                      >
-                                        {(fieldMeta) => (
-                                          <FieldInfo fieldMeta={fieldMeta} />
-                                        )}
-                                      </form.Subscribe>
-                                    </div>
-                                    <div>
-                                      <Label className="text-muted-foreground text-xs">
-                                        Payload (JSON)
-                                      </Label>
-                                      <form.Field
-                                        name={`notificationWebhookUrls[${index}].payload`}
-                                      >
-                                        {(subfield) => (
-                                          <Textarea
-                                            name={subfield.name}
-                                            value={subfield.state.value}
-                                            onChange={(e) =>
-                                              subfield.handleChange(
-                                                e.target.value,
-                                              )
+                                          >
+                                            {(fieldMeta) => (
+                                              <FieldInfo
+                                                fieldMeta={fieldMeta}
+                                              />
+                                            )}
+                                          </form.Subscribe>
+                                        </div>
+                                        <div>
+                                          <Label className="text-muted-foreground text-xs">
+                                            Payload (JSON)
+                                          </Label>
+                                          <form.Field
+                                            name={`notificationWebhookUrls[${index}].payload`}
+                                          >
+                                            {(subfield) => (
+                                              <Textarea
+                                                name={subfield.name}
+                                                value={subfield.state.value}
+                                                onChange={(e) =>
+                                                  subfield.handleChange(
+                                                    e.target.value,
+                                                  )
+                                                }
+                                                onBlur={subfield.handleBlur}
+                                                placeholder='{"topic": "cross-seed", "priority": 3, "tags": ["seedbox"]}'
+                                                rows={2}
+                                                className="resize-y font-mono text-xs"
+                                              />
+                                            )}
+                                          </form.Field>
+                                          <form.Subscribe
+                                            selector={(f) =>
+                                              f.fieldMeta[
+                                                `notificationWebhookUrls[${index}].payload` as keyof typeof f.fieldMeta
+                                              ]
                                             }
-                                            onBlur={subfield.handleBlur}
-                                            placeholder='{"topic": "cross-seed", "priority": 3, "tags": ["seedbox"]}'
-                                            rows={2}
-                                            className="resize-y font-mono text-xs"
-                                          />
-                                        )}
-                                      </form.Field>
-                                      <form.Subscribe
-                                        selector={(f) =>
-                                          f.fieldMeta[
-                                            `notificationWebhookUrls[${index}].payload` as keyof typeof f.fieldMeta
-                                          ]
-                                        }
-                                      >
-                                        {(fieldMeta) => (
-                                          <FieldInfo fieldMeta={fieldMeta} />
-                                        )}
-                                      </form.Subscribe>
-                                    </div>
-                                  </div>
-                                )}
+                                          >
+                                            {(fieldMeta) => (
+                                              <FieldInfo
+                                                fieldMeta={fieldMeta}
+                                              />
+                                            )}
+                                          </form.Subscribe>
+                                        </div>
+                                      </div>
+                                    ) : null
+                                  }
+                                </form.Subscribe>
                               </fieldset>
                             ),
                           )}
