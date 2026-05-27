@@ -18,7 +18,7 @@ import { Page } from '@/components/Page';
 import { useSettingsFormSubmit } from '@/hooks/use-settings-form-submit';
 import { z } from 'zod';
 import { RuntimeConfig } from '../../../../shared/configSchema';
-import { RotateCcw } from 'lucide-react';
+import { Clipboard, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 
 type GeneralFormData = z.infer<typeof generalValidationSchema>;
@@ -85,6 +85,18 @@ function GeneralSettings() {
 
   const selectApiKey = (event: SyntheticEvent<HTMLInputElement>) => {
     event.currentTarget.select();
+  };
+
+  const copyApiKey = async () => {
+    try {
+      await navigator.clipboard.writeText(apiKeyDraft);
+      toast.success('API key copied');
+    } catch (error) {
+      toast.error('Failed to copy API key', {
+        description:
+          error instanceof Error ? error.message : 'Clipboard unavailable',
+      });
+    }
   };
 
   return (
@@ -227,6 +239,15 @@ function GeneralSettings() {
                       onFocus={selectApiKey}
                     />
                     <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={!apiKeyDraft}
+                        onClick={copyApiKey}
+                      >
+                        <Clipboard />
+                        Copy
+                      </Button>
                       <Button
                         type="button"
                         variant="outline"
