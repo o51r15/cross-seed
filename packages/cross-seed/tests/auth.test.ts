@@ -12,10 +12,10 @@ type AuthEnv = {
 	setApiKey: typeof import("../src/auth.js").setApiKey;
 	createDevLogin: typeof import("../src/devLogin.js").createDevLogin;
 	getDbConfig: typeof import("../src/dbConfig.js").getDbConfig;
-	migrateLegacyApiKeyToDbConfig: typeof import("../src/dbConfig.js").migrateLegacyApiKeyToDbConfig;
 	getDefaultRuntimeConfig: typeof import("../src/configuration.js").getDefaultRuntimeConfig;
 	setRuntimeConfig: typeof import("../src/runtimeConfig.js").setRuntimeConfig;
 	validateSession: typeof import("../src/userAuth.js").validateSession;
+	apiKeySettingsJsonMigration: typeof import("../src/migrations/17-api-key-settings-json.js").default;
 };
 
 let currentDb: AuthEnv["db"] | undefined;
@@ -32,10 +32,11 @@ async function createAuthEnv(): Promise<AuthEnv> {
 	const { getApiKey, resetApiKey, setApiKey } =
 		await import("../src/auth.js");
 	const { createDevLogin } = await import("../src/devLogin.js");
-	const { getDbConfig, migrateLegacyApiKeyToDbConfig } =
-		await import("../src/dbConfig.js");
+	const { getDbConfig } = await import("../src/dbConfig.js");
 	const { setRuntimeConfig } = await import("../src/runtimeConfig.js");
 	const { validateSession } = await import("../src/userAuth.js");
+	const { default: apiKeySettingsJsonMigration } =
+		await import("../src/migrations/17-api-key-settings-json.js");
 
 	createAppDirHierarchy();
 	initializeLogger({ verbose: false });
@@ -49,10 +50,10 @@ async function createAuthEnv(): Promise<AuthEnv> {
 		setApiKey,
 		createDevLogin,
 		getDbConfig,
-		migrateLegacyApiKeyToDbConfig,
 		getDefaultRuntimeConfig,
 		setRuntimeConfig,
 		validateSession,
+		apiKeySettingsJsonMigration,
 	};
 }
 
@@ -88,7 +89,7 @@ describe.sequential("api key management", () => {
 			settings_json: JSON.stringify({ useClientTorrents: false }),
 		});
 
-		await env.migrateLegacyApiKeyToDbConfig();
+		await env.apiKeySettingsJsonMigration.up(env.db);
 
 		expect(await env.getDbConfig()).toMatchObject({
 			apiKey: legacyApiKey,
@@ -105,7 +106,7 @@ describe.sequential("api key management", () => {
 			settings_json: JSON.stringify({ apiKey: activeApiKey }),
 		});
 
-		await env.migrateLegacyApiKeyToDbConfig();
+		await env.apiKeySettingsJsonMigration.up(env.db);
 
 		expect((await env.getDbConfig())?.apiKey).toBe(activeApiKey);
 	});
