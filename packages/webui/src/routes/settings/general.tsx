@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { FieldInfo } from '@/components/Form/FieldInfo';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type SyntheticEvent } from 'react';
 import useConfigForm from '@/hooks/use-config-form';
 import { defaultGeneralFormValues } from '@/components/Form/shared-form';
 import { useAppForm } from '@/hooks/form';
@@ -18,13 +18,8 @@ import { Page } from '@/components/Page';
 import { useSettingsFormSubmit } from '@/hooks/use-settings-form-submit';
 import { z } from 'zod';
 import { RuntimeConfig } from '../../../../shared/configSchema';
-import { Copy, Eye, EyeOff, RotateCcw, Save } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 type GeneralFormData = z.infer<typeof generalValidationSchema>;
 
@@ -56,7 +51,6 @@ function GeneralSettings() {
 
   const [lastFieldAdded, setLastFieldAdded] = useState<string | null>(null);
   const [apiKeyDraft, setApiKeyDraft] = useState('');
-  const [isApiKeyVisible, setIsApiKeyVisible] = useState(false);
   useEffect(() => {
     if (lastFieldAdded) {
       const el = document.getElementById(lastFieldAdded);
@@ -71,34 +65,15 @@ function GeneralSettings() {
     }
   }, [settingsData?.apiKey]);
 
-  const setApiKeyMutation = useMutation(
-    trpc.settings.setApiKey.mutationOptions({
-      onSuccess: async ({ apiKey }) => {
-        setApiKeyDraft(apiKey);
-        await queryClient.invalidateQueries({
-          queryKey: trpc.settings.get.queryKey(),
-          exact: false,
-        });
-        toast.success('API key saved');
-      },
-      onError: (error) => {
-        toast.error('Failed to save API key', {
-          description: error.message || 'An unknown error occurred',
-        });
-      },
-    }),
-  );
-
   const resetApiKeyMutation = useMutation(
     trpc.settings.resetApiKey.mutationOptions({
       onSuccess: async ({ apiKey }) => {
         setApiKeyDraft(apiKey);
-        setIsApiKeyVisible(true);
         await queryClient.invalidateQueries({
           queryKey: trpc.settings.get.queryKey(),
           exact: false,
         });
-        toast.success('API key regenerated');
+        toast.success('API key regenerated and saved');
       },
       onError: (error) => {
         toast.error('Failed to regenerate API key', {
@@ -108,23 +83,8 @@ function GeneralSettings() {
     }),
   );
 
-  const isApiKeyPending =
-    setApiKeyMutation.isPending || resetApiKeyMutation.isPending;
-  const canSaveApiKey =
-    apiKeyDraft.length >= 24 &&
-    apiKeyDraft !== settingsData?.apiKey &&
-    !isApiKeyPending;
-
-  const copyApiKey = async () => {
-    try {
-      await navigator.clipboard.writeText(apiKeyDraft);
-      toast.success('API key copied');
-    } catch (error) {
-      toast.error('Failed to copy API key', {
-        description:
-          error instanceof Error ? error.message : 'Clipboard unavailable',
-      });
-    }
+  const selectApiKey = (event: SyntheticEvent<HTMLInputElement>) => {
+    event.currentTarget.select();
   };
 
   return (
@@ -255,89 +215,27 @@ function GeneralSettings() {
                 </div>
                 <div className="space-y-3">
                   <Label htmlFor="apiKey">API Key</Label>
-                  <div className="flex max-w-3xl flex-col gap-2 sm:flex-row">
+                  <div className="flex max-w-3xl flex-col gap-2 lg:flex-row">
                     <Input
                       id="apiKey"
-                      type={isApiKeyVisible ? 'text' : 'password'}
+                      type="text"
                       value={apiKeyDraft}
                       autoComplete="off"
                       spellCheck={false}
-                      onChange={(event) =>
-                        setApiKeyDraft(event.target.value.trim())
-                      }
+                      readOnly
+                      onClick={selectApiKey}
+                      onFocus={selectApiKey}
                     />
                     <div className="flex gap-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            aria-label={
-                              isApiKeyVisible
-                                ? 'Hide API key'
-                                : 'Reveal API key'
-                            }
-                            onClick={() =>
-                              setIsApiKeyVisible((visible) => !visible)
-                            }
-                          >
-                            {isApiKeyVisible ? <EyeOff /> : <Eye />}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {isApiKeyVisible ? 'Hide' : 'Reveal'}
-                        </TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            aria-label="Copy API key"
-                            disabled={!apiKeyDraft}
-                            onClick={copyApiKey}
-                          >
-                            <Copy />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Copy</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            aria-label="Save API key"
-                            disabled={!canSaveApiKey}
-                            onClick={() =>
-                              setApiKeyMutation.mutate({
-                                apiKey: apiKeyDraft,
-                              })
-                            }
-                          >
-                            <Save />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Save</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            aria-label="Regenerate API key"
-                            disabled={isApiKeyPending}
-                            onClick={() => resetApiKeyMutation.mutate()}
-                          >
-                            <RotateCcw />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Regenerate</TooltipContent>
-                      </Tooltip>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={resetApiKeyMutation.isPending}
+                        onClick={() => resetApiKeyMutation.mutate()}
+                      >
+                        <RotateCcw />
+                        Regenerate & Save
+                      </Button>
                     </div>
                   </div>
                 </div>
