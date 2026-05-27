@@ -6,6 +6,7 @@ import { getApiKey, resetApiKey, setApiKey } from "./auth.js";
 import { PROGRAM_NAME, PROGRAM_VERSION } from "./constants.js";
 import { db } from "./db.js";
 import { updateTorrentCache } from "./decide.js";
+import { createDevLogin } from "./devLogin.js";
 import { diffCmd } from "./diff.js";
 import { clearIndexerFailures } from "./indexers.js";
 import { injectSavedTorrents, restoreFromTorrentCache } from "./inject.js";
@@ -130,6 +131,22 @@ program
 	.command("reset-user")
 	.description("Delete all users and sessions")
 	.action(withMinimalRuntime(resetUsers));
+
+program
+	.command("dev-login")
+	.description("Create a development login URL")
+	.option("--user <username>", "Use a specific username")
+	.option(
+		"--origin <origin>",
+		"Origin where cross-seed is running",
+		"http://localhost:2468",
+	)
+	.option(
+		"--redirect-to <path>",
+		"Local path to open after login",
+		"/settings/general",
+	)
+	.action(withMinimalRuntime(createDevLogin));
 
 program
 	.command("daemon")

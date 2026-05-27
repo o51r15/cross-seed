@@ -10,9 +10,11 @@ type AuthEnv = {
 	getApiKey: typeof import("../src/auth.js").getApiKey;
 	resetApiKey: typeof import("../src/auth.js").resetApiKey;
 	setApiKey: typeof import("../src/auth.js").setApiKey;
+	createDevLogin: typeof import("../src/devLogin.js").createDevLogin;
 	getDbConfig: typeof import("../src/dbConfig.js").getDbConfig;
 	getDefaultRuntimeConfig: typeof import("../src/configuration.js").getDefaultRuntimeConfig;
 	setRuntimeConfig: typeof import("../src/runtimeConfig.js").setRuntimeConfig;
+	validateSession: typeof import("../src/userAuth.js").validateSession;
 };
 
 let currentDb: AuthEnv["db"] | undefined;
@@ -28,8 +30,10 @@ async function createAuthEnv(): Promise<AuthEnv> {
 	const { initializeLogger } = await import("../src/logger.js");
 	const { getApiKey, resetApiKey, setApiKey } =
 		await import("../src/auth.js");
+	const { createDevLogin } = await import("../src/devLogin.js");
 	const { getDbConfig } = await import("../src/dbConfig.js");
 	const { setRuntimeConfig } = await import("../src/runtimeConfig.js");
+	const { validateSession } = await import("../src/userAuth.js");
 
 	createAppDirHierarchy();
 	initializeLogger({ verbose: false });
@@ -41,9 +45,11 @@ async function createAuthEnv(): Promise<AuthEnv> {
 		getApiKey,
 		resetApiKey,
 		setApiKey,
+		createDevLogin,
 		getDbConfig,
 		getDefaultRuntimeConfig,
 		setRuntimeConfig,
+		validateSession,
 	};
 }
 
@@ -86,5 +92,24 @@ describe.sequential("api key management", () => {
 		expect(resetApiKey).toHaveLength(48);
 		await expect(env.getApiKey()).resolves.toBe(resetApiKey);
 		expect((await env.getDbConfig())?.apiKey).toBe(resetApiKey);
+	});
+
+	it("creates a browser-openable development login for a real session", async () => {
+		const env = await createAuthEnv();
+
+		const output = await env.createDevLogin({
+			origin: "http://localhost:5173",
+			redirectTo: "/settings/general",
+			user: "dev-user",
+		});
+		const cookie = output.match(/Cookie: cross-seed-session=([a-f0-9]+)/);
+
+		expect(output).toContain("Dev login created for dev-user");
+		expect(output).toContain("http://localhost:5173/api/dev-login/");
+		expect(output).toContain("redirectTo=%2Fsettings%2Fgeneral");
+		expect(cookie?.[1]).toBeDefined();
+		await expect(env.validateSession(cookie![1])).resolves.toMatchObject({
+			username: "dev-user",
+		});
 	});
 });
