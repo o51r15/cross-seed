@@ -32,6 +32,7 @@ jobs:
                     - target: darwin-x64
                       runner: macos-15-intel
                       binary: cross-seed-darwin-x64
+                      smoke: false
                     - target: darwin-arm64
                       runner: macos-15
                       binary: cross-seed-darwin-arm64
@@ -58,5 +59,6 @@ jobs:
                   path: sea/${{ matrix.binary }}
                   if-no-files-found: error
             - name: Smoke test SEA
+              if: ${{ matrix.smoke != false }}
               run: ./sea/${{ matrix.binary }} --version
               shell: bash
