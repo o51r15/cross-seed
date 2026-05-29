@@ -243,4 +243,8 @@ program
 
 program.showHelpAfterError("(add --help for additional information)");
 
-await program.parseAsync();
+async function main() {
+	await program.parseAsync();
+}
+
+void main();
