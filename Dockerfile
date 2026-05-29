@@ -1,5 +1,5 @@
 # Build layer
-FROM node:24-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /usr/src/app
 COPY package*.json ./
 COPY packages/cross-seed/package*.json packages/cross-seed/tsconfig*.json ./packages/cross-seed/
@@ -12,10 +12,11 @@ COPY packages/shared packages/shared
 COPY packages/api-types packages/api-types
 COPY packages/webui packages/webui
 COPY packages/cross-seed packages/cross-seed
+COPY scripts/copy-webui.js scripts/copy-webui.js
 RUN npm run build:all && npm prune --omit=dev
 
 # Runtime layer
-FROM node:24-alpine
+FROM node:26-alpine
 WORKDIR /usr/src/cross-seed
 ARG BUILD_COMMIT_SHA
 ARG BUILD_BRANCH

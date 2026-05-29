@@ -53,7 +53,7 @@ export function createInjectedFetch(
 	const realFetch =
 		options.realFetch ?? ((input, init) => globalThis.fetch(input, init));
 
-	return (async (input: FetchInput, init?: RequestInit) => {
+	return async (input: FetchInput, init?: RequestInit) => {
 		const request =
 			input instanceof Request ? input : new Request(input, init);
 		const url = new URL(request.url);
@@ -98,5 +98,5 @@ export function createInjectedFetch(
 			status: res.statusCode,
 			headers: responseHeaders,
 		});
-	}) as typeof fetch;
+	};
 }

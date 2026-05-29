@@ -19,6 +19,6 @@
 			"@cross-seed/api-types": ["../api-types/dist/index.d.ts"]
 		}
 	},
-	"include": ["./src/**/*"],
+	"include": ["./src/**/*", "./package.json"],
 	"references": [{ "path": "../shared/tsconfig.json" }]
 }

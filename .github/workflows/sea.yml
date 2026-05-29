@@ -1,0 +1,72 @@
+name: sea
+
+on:
+    workflow_dispatch:
+    push:
+        branches:
+            - modern-node-sea-setup
+        tags:
+            - "v*"
+
+permissions:
+    contents: read
+
+env:
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+concurrency:
+    group: sea-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    build:
+        name: build ${{ matrix.target }}
+        runs-on: ${{ matrix.runner }}
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - target: linux-x64
+                      runner: ubuntu-latest
+                      binary: cross-seed-linux-x64
+                      smoke: true
+                    - target: linux-arm64
+                      runner: ubuntu-24.04-arm
+                      binary: cross-seed-linux-arm64
+                      smoke: true
+                    - target: darwin-x64
+                      runner: macos-15-intel
+                      binary: cross-seed-darwin-x64
+                      smoke: false
+                    - target: darwin-arm64
+                      runner: macos-15
+                      binary: cross-seed-darwin-arm64
+                      smoke: true
+                    - target: win-x64
+                      runner: windows-latest
+                      binary: cross-seed-win-x64.exe
+                      smoke: true
+                    - target: win-arm64
+                      runner: windows-11-arm
+                      binary: cross-seed-win-arm64.exe
+                      smoke: true
+        steps:
+            - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+            - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+              with:
+                  node-version: 26
+            - run: npm ci
+            - name: Build SEA
+              env:
+                  SEA_TARGETS: ${{ matrix.target }}
+              run: npm run build:sea
+            - name: Upload SEA
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+              with:
+                  name: ${{ matrix.binary }}
+                  path: sea/${{ matrix.binary }}
+                  if-no-files-found: error
+            - name: Smoke test SEA
+              if: ${{ matrix.smoke != false }}
+              run: ./sea/${{ matrix.binary }} --version
+              shell: bash

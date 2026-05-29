@@ -4,12 +4,9 @@ import {
 	LinkType,
 	MatchMode,
 } from "@cross-seed/shared/constants";
-import { createRequire } from "module";
+import packageDotJson from "../package.json" with { type: "json" };
 
 export { Action, BlocklistType, LinkType, MatchMode };
-
-const require = createRequire(import.meta.url);
-const packageDotJson = require("../package.json");
 
 export const PROGRAM_NAME = packageDotJson.name;
 export const PROGRAM_VERSION = packageDotJson.version;
