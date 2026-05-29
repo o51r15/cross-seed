@@ -90,7 +90,17 @@ async function getNodeExecutable({ os, arch, archive, binPath }) {
 	console.log(`Downloading ${url}`);
 	await download(url, archivePath);
 
-	if (archive === "zip") {
+	if (archive === "zip" && process.platform === "win32") {
+		await run("powershell", [
+			"-NoProfile",
+			"-Command",
+			"Expand-Archive",
+			"-LiteralPath",
+			archivePath,
+			"-DestinationPath",
+			extractDir,
+		]);
+	} else if (archive === "zip") {
 		await run("unzip", ["-q", archivePath, "-d", extractDir]);
 	} else {
 		await run("tar", ["-xf", archivePath, "-C", extractDir]);

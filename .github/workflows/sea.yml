@@ -1,0 +1,60 @@
+name: sea
+
+on:
+    workflow_dispatch:
+    push:
+        tags:
+            - "v*"
+
+permissions:
+    contents: read
+
+concurrency:
+    group: sea-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    build:
+        name: build ${{ matrix.target }}
+        runs-on: ${{ matrix.runner }}
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - target: linux-x64
+                      runner: ubuntu-latest
+                      binary: cross-seed-linux-x64
+                    - target: linux-arm64
+                      runner: ubuntu-24.04-arm
+                      binary: cross-seed-linux-arm64
+                    - target: darwin-x64
+                      runner: macos-15-intel
+                      binary: cross-seed-darwin-x64
+                    - target: darwin-arm64
+                      runner: macos-15
+                      binary: cross-seed-darwin-arm64
+                    - target: win-x64
+                      runner: windows-latest
+                      binary: cross-seed-win-x64.exe
+                    - target: win-arm64
+                      runner: windows-11-arm
+                      binary: cross-seed-win-arm64.exe
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 26
+            - run: npm ci
+            - name: Build SEA
+              env:
+                  SEA_TARGETS: ${{ matrix.target }}
+              run: npm run build:sea
+            - name: Smoke test SEA
+              run: ./sea/${{ matrix.binary }} --version
+              shell: bash
+            - name: Upload SEA
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ matrix.binary }}
+                  path: sea/${{ matrix.binary }}
+                  if-no-files-found: error
