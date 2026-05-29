@@ -12,6 +12,7 @@ COPY packages/shared packages/shared
 COPY packages/api-types packages/api-types
 COPY packages/webui packages/webui
 COPY packages/cross-seed packages/cross-seed
+COPY scripts/copy-webui.js scripts/copy-webui.js
 RUN npm run build:all && npm prune --omit=dev
 
 # Runtime layer
