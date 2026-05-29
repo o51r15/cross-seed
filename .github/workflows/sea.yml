@@ -8,8 +8,6 @@ on:
     push:
         branches:
             - modern-node-sea-setup
-        tags:
-            - "v*"
 
 permissions:
     contents: write
