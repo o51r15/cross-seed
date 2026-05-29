@@ -169,7 +169,7 @@ export async function determineRuntimeConfig(
 			const runtimeFromFile = {
 				...getDefaultRuntimeConfig(),
 				...transformedFileConfig,
-			} as RuntimeConfig;
+			};
 			await applyExistingApiKey(runtimeFromFile);
 			await setDbConfig(runtimeFromFile);
 			const resolvedOverrides = stripDefaults(runtimeFromFile);

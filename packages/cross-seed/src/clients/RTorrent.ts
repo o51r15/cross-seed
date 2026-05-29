@@ -577,7 +577,7 @@ export default class RTorrent implements TorrentClient {
 									.split(",")
 									.map((tag) => tag.trim())
 							: [],
-			})) as TorrentMetadataInClient[];
+			}));
 		} catch (e) {
 			logger.error({
 				label: this.label,
