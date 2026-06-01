@@ -11,7 +11,6 @@ const config = {
 	url: "https://cross-seed.org",
 	baseUrl: "/",
 	onBrokenLinks: "throw",
-	onBrokenMarkdownLinks: "warn",
 	favicon: "img/favicon.ico",
 
 	// GitHub pages deployment config.
@@ -34,6 +33,7 @@ const config = {
 			"classic",
 			/** @type {import('@docusaurus/preset-classic').Options} */
 			({
+				blog: false,
 				docs: {
 					sidebarPath: require.resolve("./sidebars.js"),
 					sidebarCollapsed: false,
@@ -125,6 +125,9 @@ const config = {
 			},
 		}),
 	markdown: {
+		hooks: {
+			onBrokenMarkdownLinks: "warn",
+		},
 		mermaid: true,
 	},
 	themes: [

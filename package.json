@@ -14,10 +14,10 @@
 		"write-heading-ids": "docusaurus write-heading-ids"
 	},
 	"dependencies": {
-		"@docusaurus/core": "^3.6.3",
-		"@docusaurus/preset-classic": "^3.6.3",
-		"@docusaurus/theme-mermaid": "^3.6.3",
-		"@easyops-cn/docusaurus-search-local": "^0.40.1",
+		"@docusaurus/core": "^3.10.1",
+		"@docusaurus/preset-classic": "^3.10.1",
+		"@docusaurus/theme-mermaid": "^3.10.1",
+		"@easyops-cn/docusaurus-search-local": "^0.55.2",
 		"@mdx-js/react": "^3.1.0",
 		"clsx": "^1.1.1",
 		"prism-react-renderer": "^2.1.0",
@@ -25,7 +25,7 @@
 		"react-dom": "^18.2.0"
 	},
 	"devDependencies": {
-		"@docusaurus/module-type-aliases": "^3.6.3",
+		"@docusaurus/module-type-aliases": "^3.10.1",
 		"prettier": "^3.3.3"
 	},
 	"browserslist": {
@@ -46,6 +46,6 @@
 		"proseWrap": "always"
 	},
 	"engines": {
-		"node": ">=18.0"
+		"node": ">=20.0"
 	}
 }
