@@ -134,7 +134,10 @@ const config = {
 		"@docusaurus/theme-mermaid",
 		[
 			require.resolve("@easyops-cn/docusaurus-search-local"),
-			{ hashed: true },
+			{
+				hashed: true,
+				indexBlog: false,
+			},
 		],
 	],
 };
