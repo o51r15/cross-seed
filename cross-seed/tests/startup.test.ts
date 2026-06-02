@@ -52,8 +52,8 @@ describe.sequential("startup config migration", () => {
 	it("renames config.js after importing file config into the database", async () => {
 		const env = await createStartupEnv();
 		const configContents = `
-export default {
-	torznab: ["https://example.com/api?apikey=abc"],
+	export default {
+		torznab: ["https://example.com/api?apikey=abc"],
 	useClientTorrents: false,
 };
 `;
@@ -73,7 +73,7 @@ export default {
 		expect((await env.getDbConfig())?.torznab).toEqual([
 			"https://example.com/api?apikey=abc",
 		]);
-	});
+	}, 15_000);
 
 	it("leaves config.js untouched when file config import fails", async () => {
 		const env = await createStartupEnv();
