@@ -8,7 +8,7 @@ const darkCodeTheme = require("prism-react-renderer").themes.dracula;
 const config = {
 	title: "cross-seed",
 	tagline: "Download once, seed everywhere",
-	url: "https://cross-seed.org",
+	url: "https://www.cross-seed.org",
 	baseUrl: "/",
 	onBrokenLinks: "throw",
 	favicon: "img/favicon.ico",
